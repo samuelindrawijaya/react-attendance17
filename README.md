@@ -80,3 +80,37 @@ components/
 ## 📄 License
 
 This project is for skill test evaluation and demo purposes. Modify as needed.
+
+## ENV needed 
+# ─── Server Config ─────────────────────
+user 
+PORT=4002 
+NODE_ENV=development
+
+employee 
+PORT=4003 
+NODE_ENV=development
+
+attedance 
+PORT=4004
+NODE_ENV=development
+
+# ─── PostgreSQL Database (Supabase DB) ─
+DB_USER=postgres.luqfemndwezixbygklle
+DB_PASSWORD=HAW4ADASDyxrt1NZ
+DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+DB_PORT=6543
+DB_NAME=postgres
+
+
+
+# ─── JWT Settings ──────────────────────
+JWT_SECRET=your_super_secret_jwt_key
+ACCESS_TOKEN_EXPIRES=15m
+REFRESH_TOKEN_EXPIRES=7d
+JWT_ACCESS_SECRET=access_secret_key
+JWT_REFRESH_SECRET=refresh_secret_key
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+JWT_ISSUER=auth-service
+JWT_AUDIENCE=employee-management-api
