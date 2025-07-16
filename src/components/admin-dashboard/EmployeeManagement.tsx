@@ -8,7 +8,7 @@ import { Input } from "../../components/ui/input"
 import { Textarea } from "../../components/ui/textarea"
 import { Badge } from "../../components/ui/badge"
 import { Plus, Edit, Trash2, Eye, Search, UserIcon, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
-import type { Employee, employeeNext, Role } from "../../types"
+import type { Employee, employeeNext } from "../../types"
 import { Label } from "@radix-ui/react-label"
 import EmployeeProfile from "./EmployeeProfile"
 import axiosInstance from "../../lib/axiosInstance"
@@ -21,11 +21,11 @@ interface ValidationErrors {
     [key: string]: string
 }
 
-const staticRoles: Role[] = [
-    { id: "1", name: "Admin", description: "", permissions: [], created_at: "", updated_at: "" },
-    { id: "2", name: "Employee", description: "", permissions: [], created_at: "", updated_at: "" },
-    { id: "3", name: "HR", description: "", permissions: [], created_at: "", updated_at: "" }
-]
+// const staticRoles: Role[] = [
+//     { id: "1", name: "Admin", description: "", permissions: [], created_at: "", updated_at: "" },
+//     { id: "2", name: "Employee", description: "", permissions: [], created_at: "", updated_at: "" },
+//     { id: "3", name: "HR", description: "", permissions: [], created_at: "", updated_at: "" }
+// ]
 
 // Validation functions matching Joi schema
 const validateEmail = (email: string): string | null => {
@@ -181,6 +181,7 @@ export default function EmployeeManagement({ onViewProfile }: EmployeeManagement
             const res = await  axiosInstance.get("http://localhost:4002/api/auth/get-all-users");
 
             setUsers(res.data.data || [])
+            console.log(res.data.data)
         } catch (err) {
             console.error("Failed to fetch users", err)
         }
@@ -319,7 +320,7 @@ export default function EmployeeManagement({ onViewProfile }: EmployeeManagement
             fetchEmployees()
         } catch (err) {
             console.error(err)
-            alert("Failed to save employee")
+            alert(err)
         } finally {
             setIsSubmitting(false)
         }
@@ -596,22 +597,6 @@ export default function EmployeeManagement({ onViewProfile }: EmployeeManagement
                                         />
                                         <ErrorMessage error={errors.hire_date} />
                                     </div>
-
-                                    {/* Role field - only for create */}
-                                    {!editingEmployee && (
-                                        <div>
-                                            <Label>Role</Label>
-                                            <select
-                                                value={formData.role_id}
-                                                onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
-                                                className="w-full border px-3 py-2 rounded"
-                                            >
-                                                {staticRoles.map((r) => (
-                                                    <option key={r.id} value={r.id}>{r.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 

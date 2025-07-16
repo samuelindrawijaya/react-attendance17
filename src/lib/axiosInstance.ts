@@ -1,6 +1,9 @@
 import axios from "axios"
 
-const instance = axios.create() // no withCredentials here
+const instance = axios.create({
+    baseURL: "http://localhost:4002/api", // Add your base URL here
+    timeout: 10000, // Add timeout
+})
 
 instance.interceptors.request.use((config) => {
     const token = localStorage.getItem("token")
@@ -21,9 +24,11 @@ instance.interceptors.response.use(
         ) {
             originalRequest._retry = true
             try {
-                const res = await axios.post("http://localhost:4002/api/auth/refresh-token", {}, {
-                    withCredentials: true // only here
-                })
+                // Use the same instance for refresh token request
+                const res = await axios.create({
+                    baseURL: "http://localhost:4002/api",
+                    withCredentials: true
+                }).post("/auth/refresh-token", {})
 
                 const newAccessToken = res.data.data.accessToken
                 localStorage.setItem("token", newAccessToken)

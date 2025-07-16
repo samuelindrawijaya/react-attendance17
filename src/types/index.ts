@@ -40,7 +40,7 @@ export interface Employee {
   department: string
   position: string
   phone: string
-  photo_url?: string  // ✅ Add this
+  photo_url?: string 
   address: string
   hire_date: string
   status: "active" | "inactive"
@@ -48,6 +48,7 @@ export interface Employee {
   user?: User
   created_at: string
   updated_at: string
+  role : string
 }
 
 export interface employeeNext{
@@ -63,7 +64,7 @@ export interface employeeNext{
   status: string
   created_at: string
   updated_at: string
-  photo?: string            // ✅ Add this line
+  photo_url?: string       
   user?: Usernext
 }
 
