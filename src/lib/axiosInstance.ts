@@ -1,11 +1,30 @@
 import axios from "axios"
 
+const API_BASE_URL = "http://localhost:4002/api"
+
 const instance = axios.create({
-    baseURL: "http://localhost:4002/api", // Add your base URL here
-    timeout: 10000, // Add timeout
+    baseURL: API_BASE_URL,
+    timeout: 40000,
+    withCredentials: true
 })
 
-instance.interceptors.request.use((config) => {
+// Flag & queue to prevent multiple refresh calls
+let isRefreshing = false
+let failedQueue: {
+    resolve: (token: string) => void
+    reject: (err: unknown) => void
+}[] = []
+
+const processQueue = (error: unknown, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) prom.reject(error)
+        else prom.resolve(token!)
+    })
+    failedQueue = []
+}
+
+// Attach token to requests
+instance.interceptors.request.use(config => {
     const token = localStorage.getItem("token")
     if (token) {
         config.headers.Authorization = `Bearer ${token}`
@@ -13,34 +32,52 @@ instance.interceptors.request.use((config) => {
     return config
 })
 
+// Handle token expiration
 instance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    response => response,
+    async error => {
         const originalRequest = error.config
 
-        if (
-            error.response?.data?.code === "TOKEN_EXPIRED" &&
-            !originalRequest._retry
-        ) {
+        const isTokenExpired =
+            error.response?.data?.code === "TOKEN_EXPIRED" && !originalRequest._retry
+
+        if (isTokenExpired) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({
+                        resolve: (token: string) => {
+                            originalRequest.headers.Authorization = `Bearer ${token}`
+                            resolve(instance(originalRequest))
+                        },
+                        reject
+                    })
+                })
+            }
+
             originalRequest._retry = true
+            isRefreshing = true
+
             try {
-                // Use the same instance for refresh token request
-                const res = await axios.create({
-                    baseURL: "http://localhost:4002/api",
+                const res = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
                     withCredentials: true
-                }).post("/auth/refresh-token", {})
+                })
 
-                const newAccessToken = res.data.data.accessToken
-                localStorage.setItem("token", newAccessToken)
+                const newToken = res.data.data.accessToken
+                localStorage.setItem("token", newToken)
 
-                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+                instance.defaults.headers.common.Authorization = `Bearer ${newToken}`
+                processQueue(null, newToken)
+
+                originalRequest.headers.Authorization = `Bearer ${newToken}`
                 return instance(originalRequest)
             } catch (refreshError) {
-                console.error("Refresh token failed:", refreshError)
+                processQueue(refreshError, null)
                 localStorage.removeItem("token")
                 localStorage.removeItem("user")
                 window.location.href = "/"
                 return Promise.reject(refreshError)
+            } finally {
+                isRefreshing = false
             }
         }
 
