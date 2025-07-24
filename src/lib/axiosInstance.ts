@@ -8,7 +8,6 @@ const instance = axios.create({
     withCredentials: true
 })
 
-// Flag & queue to prevent multiple refresh calls
 let isRefreshing = false
 let failedQueue: {
     resolve: (token: string) => void
@@ -23,7 +22,6 @@ const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue = []
 }
 
-// Attach token to requests
 instance.interceptors.request.use(config => {
     const token = localStorage.getItem("token")
     if (token) {
@@ -32,7 +30,6 @@ instance.interceptors.request.use(config => {
     return config
 })
 
-// Handle token expiration
 instance.interceptors.response.use(
     response => response,
     async error => {
